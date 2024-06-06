@@ -29,16 +29,22 @@ def get_recipe_details():
     
     return name, ingredients, instructions, category, prep_time, cook_time, total_time, servings
 
-def remove_recipe(name, ingredients, instructions, category, prep_time, cook_time, total_time, servings):
-     conn = sqlite3.connect('RecipeBrowser.db')
-     conn = conn.cursor()
-     cursor.execute('''
-     DELETE FROM recipes (name, ingredients, instructions, category, prep_time, cook_time, total_time, servings)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     '''(name, ingredients, instructions, category, prep_time, cook_time, total_time, servings))
-     conn.commit
-     conn.close
-     print("Recipe Deleted")
+def remove_recipe():
+    conn = sqlite3.connect('RecipeBrowser.db')
+    cursor = conn.cursor()
+    name = input("Enter the name of the recipe to remove: ")
+    cursor.execute('''
+        DELETE FROM recipes WHERE name = ?
+    ''', (name,))
+    conn.commit()
+    if cursor.rowcount == 0:
+        print("No recipe found with that name.")
+    else:
+        print("Recipe removed successfully!")
+    conn.close()
+
+
+     
 
 
  
@@ -74,7 +80,7 @@ if choice == '1':
             recipe_details = get_recipe_details()
             insert_recipe(*recipe_details)
 elif choice == '4':
-     remove = input("What recipe would you like to remove\n> ")
+     remove_recipe()
 elif choice == '5':
     print("Thank You For Using Recipe Browser")
 
@@ -82,4 +88,5 @@ elif choice == '5':
 conn.commit()
 
 # Close the connection
+
 conn.close()
