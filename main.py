@@ -1,11 +1,12 @@
 import sqlite3
-
+import time
 # Establish connection to the SQLite database
 conn = sqlite3.connect('RecipeBrowser.db')
 cursor = conn.cursor()
+  
+import sqlite3
 
-
-
+# Function to insert a new recipe into the recipes table
 def insert_recipe(name, ingredients, instructions, category, prep_time, cook_time, total_time, servings):
     conn = sqlite3.connect('RecipeBrowser.db')
     cursor = conn.cursor()
@@ -16,12 +17,14 @@ def insert_recipe(name, ingredients, instructions, category, prep_time, cook_tim
     conn.commit()
     conn.close()
     print("Recipe added successfully!")
+    time.sleep(3)
 
+# Function to get recipe details from the user
 def get_recipe_details():
     name = input("Enter the recipe name: ")
     ingredients = input("Enter the ingredients (comma-separated): ")
     instructions = input("Enter the instructions: ")
-    category = input("Enter the category: ")
+    category = input("Enter the category (Breakfast, Lunch, Dinner or All): ")
     prep_time = float(input("Enter the preparation time (in minutes): "))
     cook_time = float(input("Enter the cooking time (in minutes): "))
     total_time = prep_time + cook_time
@@ -29,27 +32,33 @@ def get_recipe_details():
     
     return name, ingredients, instructions, category, prep_time, cook_time, total_time, servings
 
+# Function to remove a recipe from the recipes table
 def remove_recipe():
     conn = sqlite3.connect('RecipeBrowser.db')
     cursor = conn.cursor()
-    name = input("Enter the name of the recipe to remove: ")
-    cursor.execute('''
-        DELETE FROM recipes WHERE name = ?
-    ''', (name,))
-    conn.commit()
-    if cursor.rowcount == 0:
-        print("No recipe found with that name.")
-    else:
-        print("Recipe removed successfully!")
+    
+    while True:
+        name = input("Enter the name of the recipe to remove (or type 'cancel' to exit): ")
+        
+        if name.lower() == 'cancel':
+            print("Operation cancelled.")
+            break
+        
+        cursor.execute('''
+            DELETE FROM recipes WHERE name = ?
+        ''', (name,))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            print("No recipe found with that name. Please try again.")
+        else:
+            print("Recipe removed successfully!")
+            time.sleep(3)
+            break
+    
     conn.close()
 
-
-     
-
-
- 
-
-
+# Function to display the menu options
 def display_menu():
     print('''
  ██████   ██████                               
@@ -61,32 +70,36 @@ def display_menu():
  █████     █████░░██████  ████ █████ ░░████████
 ░░░░░     ░░░░░  ░░░░░░  ░░░░ ░░░░░   ░░░░░░░░ 
            ''')
-    """Display the menu options."""
     print("1. Add a Recipe")
     print("2. Find a Recipe")
     print("3. Change a Recipe")
     print("4. Delete a Recipe")
     print("5. Exit")
 
-display_menu()
+# Main function to run the program
+def main():
+    while True:
+        display_menu()
+        choice = input("What would you like to do?\n> ")
 
-choice = input("What Would you like to do?\n> ")
-
-while choice != '1' and choice != '2' and choice != '3' and choice != '4' and choice != '5':
-    print("That is not a valid input")
-    again = input("try again\n> ")
-
-if choice == '1':
+        if choice == '1':
+            print("Add a New Recipe")
             recipe_details = get_recipe_details()
             insert_recipe(*recipe_details)
-elif choice == '4':
-     remove_recipe()
-elif choice == '5':
-    print("Thank You For Using Recipe Browser")
+        elif choice == '2':
+            print("Search the Database for a Recipe.")
+        elif choice == '3':
+            print("Change a Existing Recipe.")
+        elif choice == '4':
+            print("Remove a Recipe")
+            remove_recipe()
+        elif choice == '5':
+            print("Thank you for using Recipe Browser. Goodbye!")
+            break
+        else:
+            print("Invalid input. Please try again.")
 
-# Commit the transaction
-conn.commit()
+main()
 
-# Close the connection
-
-conn.close()
+conn.commit
+conn.close
