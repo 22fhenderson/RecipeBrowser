@@ -5,7 +5,6 @@ import os
 conn = sqlite3.connect('RecipeBrowser.db')
 cursor = conn.cursor()
   
-import sqlite3
 
 # Function to insert a new recipe into the recipes table
 def insert_recipe(name, ingredients, instructions, category, prep_time, cook_time, total_time, servings):
@@ -61,7 +60,6 @@ def remove_recipe():
             os.system('cls')
             break
     
-    conn.close()
 
 def change_recipe():
     while True:
@@ -95,8 +93,8 @@ def change_recipe():
             new_cook_time = input("Enter the new cooking time (in minutes): ")
             new_cook_time = float(new_cook_time) if new_cook_time else recipe[6]
             new_total_time = new_prep_time + new_cook_time
-            print(f"Current servings: {recipe[7]}")
-            new_servings = input("Enter the new number of servings: ") or recipe[7]
+            print(f"Current servings: {recipe[8]}")
+            new_servings = input("Enter the new number of servings: ") or recipe[8]
 
             cursor.execute('''
                 UPDATE recipes
@@ -105,10 +103,113 @@ def change_recipe():
             ''', (new_name, new_ingredients, new_instructions, new_category, new_prep_time, new_cook_time, new_total_time, new_servings, name))
             conn.commit()
             print("Recipe updated successfully!")
+            time.sleep(1)
+            print("Returning to the Menu")
+            time.sleep(2)
             break
     
-    conn.close()
     
+    
+
+def find_all_recipes():
+    cursor.execute('''
+        SELECT * FROM recipes
+    ''')
+    recipes = cursor.fetchall()
+
+    if recipes:
+        print("All Recipes:")
+        for recipe in recipes:
+            print_recipe(recipe)
+    else:
+        print("No recipes found.")
+
+def find_recipe_by_keyword():
+    print("Choose a search option:")
+    print("1. Name")
+    print("2. Ingredients")
+    print("3. Instructions")
+    print("4. Category")
+    print("5. Preparation Time")
+    print("6. Cooking Time")
+    print("7. Total Time")
+    print("8. Servings")
+    option_choice = input("Enter your choice: ")
+
+    if option_choice == '1':
+        keyword = input("Enter a name to search for: ").lower()
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE LOWER(name) LIKE ?
+        ''', ('%' + keyword + '%',))
+    elif option_choice == '2':
+        keyword = input("Enter ingredients to search for: ").lower()
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE LOWER(ingredients) LIKE ?
+        ''', ('%' + keyword + '%',))
+    elif option_choice == '3':
+        keyword = input("Enter instructions to search for: ").lower()
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE LOWER(instructions) LIKE ?
+        ''', ('%' + keyword + '%',))
+    elif option_choice == '4':
+        keyword = input("Enter a category to search for: ").lower()
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE LOWER(category) LIKE ?
+        ''', ('%' + keyword + '%',))
+    elif option_choice == '5':
+        prep_time = float(input("Enter maximum preparation time (in minutes): "))
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE prep_time <= ?
+        ''', (prep_time,))
+    elif option_choice == '6':
+        cook_time = float(input("Enter maximum cooking time (in minutes): "))
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE cook_time <= ?
+        ''', (cook_time,))
+    elif option_choice == '7':
+        total_time = float(input("Enter maximum total time (in minutes): "))
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE total_time <= ?
+        ''', (total_time,))
+    elif option_choice == '8':
+        servings = int(input("Enter minimum number of servings: "))
+        cursor.execute('''
+            SELECT * FROM recipes
+            WHERE servings >= ?
+        ''', (servings,))
+    else:
+        print("Invalid choice.")
+        return
+
+    results = cursor.fetchall()
+
+    if results:
+        print("Recipes found:")
+        for result in results:
+            print_recipe(result)
+    else:
+        print("No recipes found with the specified criteria.")
+
+def print_recipe(recipe):
+    print(f'''
+    ID: {recipe[0]}
+    Name: {recipe[1]}
+    Ingredients: {recipe[2]}
+    Instructions: {recipe[3]}
+    Category: {recipe[4]}
+    Preparation Time: {recipe[5]} minutes
+    Cooking Time: {recipe[6]} minutes
+    Total Time: {recipe[7]} minutes
+    Servings: {recipe[8]}
+    ''')
+
 
 # Function to display the menu options
 def display_menu():
@@ -122,8 +223,9 @@ def display_menu():
  █████     █████░░██████  ████ █████ ░░████████
 ░░░░░     ░░░░░  ░░░░░░  ░░░░ ░░░░░   ░░░░░░░░ 
           \033[0;37;48m''')
-    
-    print("1. Add a Recipe")
+    print("Welcome to Recipe Browser")
+    print("This code will allow you to add, search, change and delete recipes from a database. ")
+    print("\n1. Add a Recipe")
     print("2. Find a Recipe")
     print("3. Change a Recipe")
     print("4. Delete a Recipe")
@@ -141,7 +243,19 @@ def main():
             recipe_details = get_recipe_details()
             insert_recipe(*recipe_details)
         elif choice == '2':
-            print("Search the Database for a Recipe.")
+            while True:
+                print("\n1. Show all recipes")
+                print("2. Search for a recipe by keyword")
+                sub_choice = input("Enter your choice (or 'exit' to return to the main menu): ")
+                
+                if sub_choice == '1':
+                    find_all_recipes()
+                elif sub_choice == '2':
+                    find_recipe_by_keyword()
+                elif sub_choice.lower() == 'exit':
+                    break
+                else:
+                    print("Invalid choice. Please enter '1', '2', or 'exit'.")
         elif choice == '3':
             print("Change a Existing Recipe.")
             change_recipe()
@@ -149,7 +263,7 @@ def main():
             print("Remove a Recipe")
             remove_recipe()
         elif choice == '5':
-            print("Thank you for using Recipe Browser. Goodbye!")
+            print("Thank you for using Recipe Browser. \nGoodbye!")
             break
         elif choice == "Jacob Mcrae Location":
             print("Jacob Mcrae Lives at 1 Helms Court Arrowtown New Zealand")
@@ -157,7 +271,6 @@ def main():
             os.system('cls')
         else:
             print("Invalid input. Please try again.")
-
 
 main()
 
